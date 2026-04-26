@@ -149,7 +149,7 @@
         <div class="role-tab" id="tab-teacher" onclick="switchRole('teacher')">Giáo viên</div>
     </div>
 
-    <form action="xuly_dangnhap.php" method="POST">
+    <form action="xulidn.php" method="POST">
         <div class="input-group">
             <label>Địa chỉ Email</label>
             <input type="email" name="email" required placeholder="nhapemail@sv.edu.vn">
