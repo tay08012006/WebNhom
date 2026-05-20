@@ -1,169 +1,215 @@
 <?php
-session_start();
-include '../config.php'; // Kết nối CSDL từ file gốc
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+include '../dp.php';
 
-// 1. Kiểm tra quyền truy cập của Học sinh
+// Kiểm tra quyền học sinh
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'student') {
     header("Location: ../trangdangnhap.php");
     exit();
 }
 
-// 2. Kiểm tra ID lớp học trên URL
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    die("Lỗi: Không tìm thấy ID lớp học hợp pháp!");
+// Lấy ID lớp học từ đường dẫn URL (Ví dụ: phonghoc.php?id=1)
+if (!isset($_GET['id'])) {
+    die("Không tìm thấy lớp học!");
 }
 $id_lop = intval($_GET['id']);
 $id_hocsinh = $_SESSION['user_id'];
 
-// 3. TỐI ƯU BẢO MẬT: Kiểm tra xem học sinh này có thực sự đã tham gia lớp này chưa
-$sql_check = "SELECT id FROM class_enrollments WHERE user_id = ? AND class_id = ?";
-$stmt_check = $conn->prepare($sql_check);
-$stmt_check->bind_param("ii", $id_hocsinh, $id_lop);
-$stmt_check->execute();
-if ($stmt_check->get_result()->num_rows == 0) {
-    die("Lỗi bảo mật: Em không có quyền truy cập vào phòng học này!");
-}
-
-// 4. LẤY THÔNG TIN LỚP HỌC & GIÁO VIÊN
-$sql_lop = "SELECT c.*, u.hoten AS ten_gv 
-            FROM classes c
-            JOIN users u ON c.giaovien_id = u.id 
-            WHERE c.id = ?";
+// 1. Lấy thông tin lớp học hiện tại
+$sql_lop = "SELECT lop_hoc.*, users.ho_ten AS ten_gv FROM lop_hoc 
+            JOIN users ON lop_hoc.id_giaovien = users.id WHERE lop_hoc.id = ?";
 $stmt_lop = $conn->prepare($sql_lop);
 $stmt_lop->bind_param("i", $id_lop);
 $stmt_lop->execute();
-$info_lop = $stmt_lop->get_result()->fetch_assoc();
+$lop = $stmt_lop->get_result()->fetch_assoc();
+if (!$lop) die("Lớp học không tồn tại!");
 
-if (!$info_lop) {
-    die("Lỗi: Không tìm thấy thông tin lớp học!");
-}
+// 2. Lấy danh sách bảng tin giáo viên đã gửi (Mới nhất lên đầu)
+$sql_bangtin = "SELECT bang_tin.*, users.ho_ten, users.avatar FROM bang_tin 
+                JOIN users ON bang_tin.id_giaovien = users.id 
+                WHERE bang_tin.id_lop = ? ORDER BY bang_tin.ngay_dang DESC";
+$stmt_bt = $conn->prepare($sql_bangtin);
+$stmt_bt->bind_param("i", $id_lop);
+$stmt_bt->execute();
+$list_bangtin = $stmt_bt->get_result();
 
-// 5. LẤY DANH SÁCH BÀI TẬP VÀ TRẠNG THÁI NỘP BÀI CỦA HỌC SINH
-$sql_baitap = "SELECT b.*, n.ngay_nop 
-               FROM bai_tap b 
-               LEFT JOIN nop_bai n ON b.id = n.bai_tap_id AND n.student_id = ?
-               WHERE b.class_id = ? 
-               ORDER BY b.han_nop ASC";
-$stmt_baitap = $conn->prepare($sql_baitap);
-$stmt_baitap->bind_param("ii", $id_hocsinh, $id_lop);
-$stmt_baitap->execute();
-$result_baitap = $stmt_baitap->get_result();
-
-$current_page = 'lophoc.php';
+// 3. Lấy danh sách bài tập của lớp
+$sql_baitap = "SELECT * FROM baitap WHERE id_lop = ? ORDER BY ngay_han ASC";
+$stmt_btap = $conn->prepare($sql_baitap);
+$stmt_btap->bind_param("i", $id_lop);
+$stmt_btap->execute();
+$list_baitap = $stmt_btap->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phòng học: <?php echo htmlspecialchars($info_lop['ten_lop']); ?></title>
+    <title><?php echo htmlspecialchars($lop['ten_lop']); ?> | Góc Học Tập</title>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
-        body { background-color: #f4f7f6; display: flex; min-height: 100vh; overflow-x: hidden; }
+        body { background-color: #f4f7f6; }
+        
+        .main-content { margin-left: 260px; padding: 40px; padding-top: 100px; transition: margin-left 0.3s; }
+        .main-content.mo-rong { margin-left: 0; }
 
-        .toggle-btn { position: fixed; top: 20px; left: 20px; font-size: 26px; background: #ffffff; color: #0288d1; border: 1px solid #eceff1; padding: 8px 15px; border-radius: 8px; cursor: pointer; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .sidebar { width: 260px; background: #ffffff; padding: 80px 25px 25px 25px; box-shadow: 2px 0 10px rgba(0,0,0,0.05); position: fixed; height: 100vh; z-index: 999; transition: 0.3s; }
-        .sidebar.hidden { transform: translateX(-260px); }
-        .sidebar h2 { color: #0288d1; font-weight: 800; margin-bottom: 30px; text-align: center; font-size: 24px; }
-        .menu-item { display: block; padding: 12px 15px; text-decoration: none; color: #546e7a; font-weight: 600; border-radius: 8px; margin-bottom: 10px; }
-        .menu-item.active, .menu-item:hover { background: #e1f5fe; color: #0288d1; }
-        .logout { color: #e53935; margin-top: 50px; border: 1px solid transparent; }
-        .logout:hover { background: #ffebee; color: #c62828; }
+        .class-header { background: #fff; padding: 25px; border-radius: 15px; border: 1px solid #eceff1; margin-bottom: 30px; border-left: 5px solid #0288d1; }
+        .class-header h1 { color: #263238; font-size: 26px; font-weight: 800; }
+        .class-header p { color: #78909c; font-weight: 600; margin-top: 5px; }
 
-        .main-content { flex: 1; padding: 40px 40px 40px 300px; transition: 0.3s; }
-        .main-content.expanded { padding-left: 80px; }
+        /* Bố cục 2 cột biệt lập */
+        .room-container { display: flex; gap: 30px; align-items: start; }
+        .left-column { flex: 7; display: flex; flex-direction: column; gap: 20px; }
+        .right-column { flex: 3; display: flex; flex-direction: column; gap: 20px; position: sticky; top: 100px; }
 
-        .room-header { background: white; padding: 30px; border-radius: 15px; border: 1px solid #eceff1; margin-bottom: 30px; margin-top: 20px; }
-        .room-header h1 { color: #0288d1; font-size: 28px; font-weight: 800; margin-bottom: 5px; }
-        .room-header p { color: #78909c; font-weight: 600; font-size: 15px; }
+        /* Khung bài đăng (Bảng tin) */
+        .feed-card { background: #fff; border-radius: 15px; border: 1px solid #eceff1; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.01); }
+        .feed-author { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; }
+        .feed-author img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .author-info h4 { color: #263238; font-weight: 700; font-size: 16px; }
+        .author-info span { color: #90a4ae; font-size: 12px; font-weight: 600; }
+        .feed-content { color: #455a64; font-size: 15px; line-height: 1.6; font-weight: 600; white-space: pre-line; margin-bottom: 20px; }
 
-        .section-title { color: #263238; font-size: 20px; font-weight: 700; margin-bottom: 15px; }
+        /* Khu vực bình luận */
+        .comment-section { border-top: 1px solid #f0f4f5; padding-top: 15px; }
+        .comment-item { display: flex; gap: 10px; margin-bottom: 12px; background: #f8f9fa; padding: 10px 15px; border-radius: 10px; }
+        .comment-item strong { color: #0288d1; font-size: 14px; font-weight: 700; }
+        .comment-item p { color: #546e7a; font-size: 13px; font-weight: 600; margin-top: 2px; }
+        .comment-item small { color: #b0bec5; font-size: 11px; margin-left: auto; }
+        
+        .comment-form { display: flex; gap: 10px; margin-top: 15px; }
+        .comment-input { flex: 1; padding: 10px 15px; border: 2px solid #cfd8dc; border-radius: 8px; outline: none; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        .comment-input:focus { border-color: #0288d1; }
+        .btn-comment { background: #0288d1; color: #fff; border: none; padding: 0 15px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
 
-        .assignment-container { background: white; border-radius: 15px; border: 1px solid #eceff1; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
-        .assignment-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; border-bottom: 1px solid #f1f5f7; transition: 0.2s; }
-        .assignment-row:last-child { border-bottom: none; }
-        .assignment-row:hover { background-color: #fafbfc; }
+        /* Khung bài tập bên phải */
+        .sidebar-box { background: #fff; border-radius: 15px; border: 1px solid #eceff1; padding: 20px; }
+        .sidebar-box h3 { color: #263238; font-size: 18px; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        
+        .task-card { background: #fafafa; border: 1px solid #f0f2f5; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .task-card h4 { color: #263238; font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+        .task-card p { color: #e53935; font-size: 12px; font-weight: 700; margin-bottom: 12px; }
 
-        .assignment-info h3 { color: #263238; font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-        .assignment-deadline { color: #78909c; font-size: 13px; font-weight: 600; }
-        .deadline-highlight { color: #e53935; }
-
-        .btn-status { display: inline-block; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; text-align: center; min-width: 130px; }
-        .status-yet { background: #fff3e0; color: #ef6c00; }
-        .status-yet:hover { background: #ffe0b2; }
-        .status-done { background: #e8f5e9; color: #2e7d32; pointer-events: none; }
-        .status-expired { background: #ffebee; color: #c62828; pointer-events: none; }
+        /* Form nộp bài trực tiếp */
+        .upload-form { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed #cfd8dc; padding-top: 12px; }
+        .upload-form label { font-size: 12px; color: #546e7a; font-weight: 700; }
+        .file-select { font-size: 12px; font-weight: 600; color: #78909c; }
+        .link-input { padding: 8px 12px; font-size: 13px; border: 1px solid #cfd8dc; border-radius: 6px; outline: none; font-weight: 600; }
+        .btn-submit-task { background: #ff9800; color: #fff; border: none; padding: 8px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; margin-top: 5px; transition: 0.2s; }
+        .btn-submit-task:hover { background: #f57c00; }
+        
+        .status-success { color: #4caf50 !important; font-weight: 700; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <?php include 'thanh.php'; ?>
 
-    <div class="sidebar" id="mySidebar">
-        <h2>Góc Học Tập</h2>
-        <a href="index.php" class="menu-item">Bảng điều khiển</a>
-        <a href="lophoc.php" class="menu-item active">Lớp học của tôi</a>
-        <a href="profile.php" class="menu-item">Hồ sơ cá nhân</a>
-        <a href="../logout.php" class="menu-item logout">Đăng xuất</a>
-    </div>
-
-    <div class="main-content" id="mainContent">
-        <div class="room-header">
-            <h1><?php echo htmlspecialchars($info_lop['ten_lop']); ?></h1>
-            <p>Giáo viên phụ trách: <?php echo htmlspecialchars($info_lop['ten_gv']); ?></p>
+    <div class="main-content">
+        <div class="class-header">
+            <h1>🎨 Lớp: <?php echo htmlspecialchars($lop['ten_lop']); ?></h1>
+            <p>Mã lớp học: <strong><?php echo htmlspecialchars($lop['ma_lop']); ?></strong> | Giáo viên phụ trách: <strong><?php echo htmlspecialchars($lop['ten_gv']); ?></strong></p>
         </div>
 
-        <h2 class="section-title">Bài tập sắp đến hạn và cần làm</h2>
+        <div class="room-container">
+            
+            <div class="left-column">
+                <h2 style="color: #263238; font-size: 18px; font-weight: 800;">📢 Bảng tin lớp học</h2>
+                
+                <?php if ($list_bangtin->num_rows > 0): ?>
+                    <?php while ($bt = $list_bangtin->fetch_assoc()): ?>
+                        <div class="feed-card">
+                            <div class="feed-author">
+                                <img src="<?php echo !empty($bt['avatar']) ? '../uploads/'.$bt['avatar'] : '../uploads/default.png'; ?>" alt="GV">
+                                <div class="author-info">
+                                    <h4><?php echo htmlspecialchars($bt['ho_ten']); ?> (Giáo viên)</h4>
+                                    <span>Đăng lúc: <?php echo date('H:i d/m/Y', strtotime($bt['ngay_dang'])); ?></span>
+                                </div>
+                            </div>
+                            <div class="feed-content"><?php echo htmlspecialchars($bt['noi_dung']); ?></div>
+                            
+                            <div class="comment-section">
+                                <?php
+                                $sql_bl = "SELECT binh_luan.*, users.ho_ten FROM binh_luan 
+                                        JOIN users ON binh_luan.id_user = users.id 
+                                        WHERE binh_luan.id_bangtin = ? ORDER BY binh_luan.ngay_binhluan ASC";
+                                $stmt_bl = $conn->prepare($sql_bl);
+                                $stmt_bl->bind_param("i", $bt['id']);
+                                $stmt_bl->execute();
+                                $list_bl = $stmt_bl->get_result();
+                                while ($bl = $list_bl->fetch_assoc()):
+                                ?>
+                                    <div class="comment-item">
+                                        <div>
+                                            <strong><?php echo htmlspecialchars($bl['ho_ten']); ?>:</strong>
+                                            <p><?php echo htmlspecialchars($bl['noi_dung']); ?></p>
+                                        </div>
+                                        <small><?php echo date('H:i', strtotime($bl['ngay_binhluan'])); ?></small>
+                                    </div>
+                                <?php endwhile; ?>
 
-        <div class="assignment-container">
-            <?php 
-            if ($result_baitap->num_rows > 0):
-                while($row = $result_baitap->fetch_assoc()):
-                    $han_nop_timestamp = strtotime($row['han_nop']);
-                    $current_timestamp = time();
-                    $formatted_deadline = date("H:i d/m/Y", $han_nop_timestamp);
-            ?>
-                <div class="assignment-row">
-                    <div class="assignment-info">
-                        <h3><?php echo htmlspecialchars($row['tieu_de']); ?></h3>
-                        <div class="assignment-deadline">
-                            Hạn nộp: <span class="deadline-highlight"><?php echo $formatted_deadline; ?></span>
+                                <form action="xuly_binhluan.php" method="POST" class="comment-form">
+                                    <input type="hidden" name="id_bangtin" value="<?php echo $bt['id']; ?>">
+                                    <input type="hidden" name="id_lop" value="<?php echo $id_lop; ?>">
+                                    <input type="text" name="noi_dung_bl" class="comment-input" placeholder="Viết bình luận công khai..." required autocomplete="off">
+                                    <button type="submit" class="btn-comment">Gửi</button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div style="background: #fff; padding: 30px; border-radius:15px; text-align: center; color: #90a4ae; font-weight: 600;">Giáo viên chưa đăng thông báo nào lên bảng tin.</div>
+                <?php endif; ?>
+            </div>
+
+            <div class="right-column">
+                <div class="sidebar-box">
+                    <h3>Bài tập sắp đến hạn</h3>
                     
-                    <div class="assignment-action">
-                        <?php 
-                        if (!empty($row['ngay_nop'])) {
-                            echo '<span class="btn-status status-done">Đã nộp bài</span>';
-                        } elseif ($current_timestamp > $han_nop_timestamp) {
-                            echo '<span class="btn-status status-expired">Quá hạn nộp</span>';
-                        } else {
-                            echo '<a href="nopbai.php?id_baitap='.$row['id'].'" class="btn-status status-yet">Nộp bài ngay</a>';
-                        }
-                        ?>
-                    </div>
+                    <?php if ($list_baitap->num_rows > 0): ?>
+                        <?php while ($btap = $list_baitap->fetch_assoc()): ?>
+                            <div class="task-card">
+                                <h4> <?php echo htmlspecialchars($btap['tieude']); ?></h4>
+                                
+                                <?php
+                                // Kiểm tra xem học sinh này đã nộp bài tập này chưa
+                                $sql_check_nop = "SELECT * FROM nop_bai_tap WHERE id_baitap = ? AND id_hocsinh = ?";
+                                $stmt_ck = $conn->prepare($sql_check_nop);
+                                $stmt_ck->bind_param("ii", $btap['id'], $id_hocsinh);
+                                $stmt_ck->execute();
+                                $da_nop = $stmt_ck->get_result()->fetch_assoc();
+                                ?>
+
+                                <?php if ($da_nop): ?>
+                                    <p class="status-success">✓ Đã hoàn thành nộp bài</p>
+                                <?php else: ?>
+                                    <p>Hạn chót: <?php echo date('H:i d/m/Y', strtotime($btap['ngay_han'])); ?></p>
+                                    
+                                    <form action="xuly_nopbai.php" method="POST" enctype="multipart/form-data" class="upload-form">
+                                        <input type="hidden" name="id_baitap" value="<?php echo $btap['id']; ?>">
+                                        <input type="hidden" name="id_lop" value="<?php echo $id_lop; ?>">
+                                        
+                                        <label>Cách 1: Tải file lên từ máy</label>
+                                        <input type="file" name="file_baitap" class="file-select">
+                                        
+                                        <label>Cách 2: Hoặc dán link bài tập</label>
+                                        <input type="url" name="link_baitap" class="link-input" placeholder="https://drive.google.com/...">
+                                        
+                                        <button type="submit" class="btn-submit-task">Nộp bài ngay ➔</button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <p style="color: #90a4ae; text-align: center; font-size: 14px; font-weight: 600; padding: 10px 0;">Lớp học hiện tại không có bài tập nào!</p>
+                    <?php endif; ?>
                 </div>
-            <?php 
-                endwhile;
-            else:
-            ?>
-                <p style="color:#78909c; font-weight:600; padding: 40px; text-align: center;">
-                    Hiện tại lớp học này chưa có bài tập nào cần làm.
-                </p>
-            <?php endif; ?>
+            </div>
+
         </div>
     </div>
-
-    <script>
-        function toggleSidebar() {
-            var sidebar = document.getElementById("mySidebar");
-            var mainContent = document.getElementById("mainContent");
-            sidebar.classList.toggle("hidden");
-            mainContent.classList.toggle("expanded");
-        }
-    </script>
 
 </body>
 </html>
