@@ -1,0 +1,349 @@
+Câu 1. Lập trình là gì?
+A. Thiết kế phần cứng
+B. Viết các chỉ dẫn cho máy tính thực hiện
+C. Sửa chữa máy tính
+D. Cài đặt hệ điều hành
+Đáp án: B
+
+Câu 2. Ngôn ngữ lập trình nào sau đây là ngôn ngữ bậc cao?
+A. Java
+B. Mã máy
+C. Nhị phân
+D. Hexa
+Đáp án: A
+
+Câu 3. Từ khóa dùng để khai báo biến số nguyên trong C++ là:
+A. float
+B. string
+C. int
+D. char
+Đáp án: C
+
+Câu 4. Giá trị của biểu thức 5 + 3 * 2 là:
+A. 16
+B. 11
+C. 13
+D. 10
+Đáp án: B
+
+Câu 5. Ký hiệu dùng để gán giá trị trong C++ là:
+A. ==
+B. =
+C. !=
+D. <=
+Đáp án: B
+
+Câu 6. Biến dùng để lưu ký tự là:
+A. int
+B. float
+C. char
+D. bool
+Đáp án: C
+
+Câu 7. Câu lệnh điều kiện trong C++ là:
+A. while
+B. for
+C. if
+D. cout
+Đáp án: C
+
+Câu 8. Kết quả của 10 % 3 là:
+A. 1
+B. 3
+C. 0
+D. 10
+Đáp án: A
+
+Câu 9. Vòng lặp nào kiểm tra điều kiện trước khi thực hiện?
+A. do...while
+B. while
+C. switch
+D. break
+Đáp án: B
+
+Câu 10. Từ khóa dùng để thoát khỏi vòng lặp là:
+A. continue
+B. stop
+C. break
+D. return
+Đáp án: C
+
+Câu 11. Kiểu dữ liệu nào lưu số thực?
+A. int
+B. bool
+C. float
+D. char
+Đáp án: C
+
+Câu 12. Toán tử so sánh bằng là:
+A. =
+B. ==
+C. !=
+D. >=
+Đáp án: B
+
+Câu 13. Giá trị của biểu thức (5 > 3) là:
+A. True
+B. False
+C. 5
+D. 3
+Đáp án: A
+
+Câu 14. Hàm main() trong C++ dùng để:
+A. Khai báo biến
+B. Bắt đầu chương trình
+C. Kết thúc chương trình
+D. Nhập dữ liệu
+Đáp án: B
+
+Câu 15. Câu lệnh xuất dữ liệu trong C++ là:
+A. cin
+B. printf
+C. cout
+D. scanf
+Đáp án: C
+
+Câu 16. Câu lệnh nhập dữ liệu trong C++ là:
+A. cout
+B. cin
+C. print
+D. write
+Đáp án: B
+
+Câu 17. Kiểu dữ liệu bool có mấy giá trị?
+A. 1
+B. 2
+C. 3
+D. 4
+Đáp án: B
+
+Câu 18. Toán tử AND trong C++ là:
+A. ||
+B. &&
+C. !
+D. ==
+Đáp án: B
+
+Câu 19. Toán tử OR trong C++ là:
+A. &&
+B. ||
+C. !=
+D. %
+Đáp án: B
+
+Câu 20. Mảng dùng để:
+A. Lưu nhiều giá trị cùng kiểu dữ liệu
+B. Lưu duy nhất một giá trị
+C. Xuất dữ liệu
+D. Nhập dữ liệu
+Đáp án: A
+
+Câu 21. Chỉ số đầu tiên của mảng là:
+A. 1
+B. -1
+C. 0
+D. 2
+Đáp án: C
+
+Câu 22. Vòng lặp for thường dùng khi:
+A. Biết trước số lần lặp
+B. Không biết số lần lặp
+C. Xuất dữ liệu
+D. Khai báo biến
+Đáp án: A
+
+Câu 23. Câu lệnh switch dùng để:
+A. Lặp
+B. Rẽ nhánh nhiều lựa chọn
+C. Nhập dữ liệu
+D. Khai báo hàm
+Đáp án: B
+
+Câu 24. Hàm là gì?
+A. Một biến đặc biệt
+B. Một khối lệnh thực hiện nhiệm vụ xác định
+C. Một vòng lặp
+D. Một kiểu dữ liệu
+Đáp án: B
+
+Câu 25. Từ khóa trả về giá trị của hàm là:
+A. break
+B. continue
+C. return
+D. end
+Đáp án: C
+
+Câu 26. Kiểu dữ liệu string dùng để lưu:
+A. Số nguyên
+B. Ký tự đơn
+C. Chuỗi ký tự
+D. Giá trị logic
+Đáp án: C
+
+Câu 27. Giá trị của ++x là:
+A. Tăng x lên 1 trước khi sử dụng
+B. Giảm x đi 1
+C. Tăng sau khi sử dụng
+D. Không đổi
+Đáp án: A
+
+Câu 28. Câu lệnh continue dùng để:
+A. Thoát vòng lặp
+B. Bỏ qua lần lặp hiện tại
+C. Dừng chương trình
+D. Trả về giá trị
+Đáp án: B
+
+Câu 29. Thuật toán là:
+A. Danh sách phần mềm
+B. Trình biên dịch
+C. Các bước giải quyết một bài toán
+D. Hệ điều hành
+Đáp án: C
+
+Câu 30. Lưu đồ (Flowchart) dùng để:
+A. Vẽ giao diện
+B. Biểu diễn thuật toán
+C. Chạy chương trình
+D. Biên dịch mã nguồn
+Đáp án: B
+
+Câu 31. Biến phải được:
+A. Khai báo trước khi sử dụng
+B. Khai báo sau khi dùng
+C. Không cần khai báo
+D. Chỉ khai báo trong hàm main
+Đáp án: A
+
+Câu 32. Kết quả của 8 / 2 là:
+A. 2
+B. 4
+C. 8
+D. 16
+Đáp án: B
+
+Câu 33. Dấu chú thích một dòng trong C++ là:
+A. /* */
+B. //
+C. #
+D. --
+Đáp án: B
+
+Câu 34. Dấu chú thích nhiều dòng là:
+A. //
+B. ##
+C. /* */
+D. --
+Đáp án: C
+
+Câu 35. Từ khóa else đi kèm với:
+A. while
+B. switch
+C. if
+D. for
+Đáp án: C
+
+Câu 36. Giá trị của biểu thức !(5 > 3) là:
+A. True
+B. False
+C. 5
+D. 3
+Đáp án: B
+
+Câu 37. Compiler là:
+A. Trình duyệt
+B. Trình biên dịch
+C. Hệ điều hành
+D. Cơ sở dữ liệu
+Đáp án: B
+
+Câu 38. IDE là:
+A. Môi trường phát triển tích hợp
+B. Hệ điều hành
+C. Trình duyệt web
+D. Máy chủ
+Đáp án: A
+
+Câu 39. Kiểu dữ liệu nào chiếm ít bộ nhớ nhất?
+A. char
+B. double
+C. float
+D. long long
+Đáp án: A
+
+Câu 40. Giá trị của 7 > 9 là:
+A. True
+B. False
+C. 7
+D. 9
+Đáp án: B
+
+Câu 41. Mục đích của debug là:
+A. Viết mã nguồn
+B. Tìm và sửa lỗi chương trình
+C. Tăng tốc máy tính
+D. Xóa dữ liệu
+Đáp án: B
+
+Câu 42. Lỗi cú pháp xảy ra khi:
+A. Sai logic
+B. Sai cú pháp ngôn ngữ
+C. Chương trình chạy chậm
+D. Thiếu dữ liệu
+Đáp án: B
+
+Câu 43. Giá trị mặc định của bool thường là:
+A. True
+B. False
+C. 1
+D. Không xác định
+Đáp án: D
+
+Câu 44. Câu lệnh nào tạo vòng lặp vô hạn?
+A. while(true)
+B. if(true)
+C. switch(1)
+D. break
+Đáp án: A
+
+Câu 45. Kết quả của 4 * 5 là:
+A. 9
+B. 20
+C. 25
+D. 15
+Đáp án: B
+
+Câu 46. Hàm không trả về giá trị dùng kiểu:
+A. int
+B. float
+C. void
+D. bool
+Đáp án: C
+
+Câu 47. Giá trị của 15 % 4 là:
+A. 3
+B. 4
+C. 2
+D. 1
+Đáp án: A
+
+Câu 48. Cấu trúc dữ liệu FIFO là:
+A. Stack
+B. Queue
+C. Array
+D. Tree
+Đáp án: B
+
+Câu 49. Cấu trúc dữ liệu LIFO là:
+A. Queue
+B. Array
+C. Stack
+D. List
+Đáp án: C
+
+Câu 50. Mục tiêu chính của lập trình là:
+A. Giải quyết bài toán bằng máy tính
+B. Mua máy tính mới
+C. Tăng tốc Internet
+D. Cài hệ điều hành
+Đáp án: A
